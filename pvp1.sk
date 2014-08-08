@@ -1,0 +1,81 @@
+on skript start: #Reset ID
+	delete {Server::*}
+	set {_i} to 1
+	loop 1000 times:
+		set {Server::%{_i}%} to false
+		add 1 to {_i}
+		
+command list <text> [<integer>]: #List Test
+	permission: pvp1.list
+	usage: list <add|del|show|next> <slot>
+	trigger:
+		if arg 1 is "show":
+			message "Slot %arg 2%: %{Server::%arg 2%}%"
+		else if arg 1 is "add":
+			set {Server::%arg 2%} to true
+			message "Slot %arg 2% is now true"
+		else if arg 1 is "del":
+			set {Server::%arg 2%} to false
+			message "Slot %arg 2% is now false"
+		else if arg 1 is "next":
+			loop {Server::*}:
+				loop-value is false
+				message "Next free slot: %loop-index%"
+				exit trigger
+on join:	#Items & Co
+	clear player's inventory
+	wait 3 ticks
+	give a blaze rod named "Reload" to the player
+	give a name tag named "&6&lHerausfordern" to the player
+	
+	set {pvp1.%player%.isInChallengeMenu} to false
+	
+on right click with blaze rod: #Dev
+		make the player execute command "sk reload scripts"
+		
+on right click with name tag: #Inventar
+	#distance between the player and the target is smaller than 5
+	#{%target%.isInChallengeMenu} is false
+	set {pvp1.%target%.isInChallengeMenu} to true
+	show "s;3;i;dirt;n;&3Annehmen:;l;Klicke hier drauf um die Herausforderung anzunehmen!;c;acceptChallenge %player% %target%;s;7;i;stone;n;&4Ablehnen;l;Klicke hier drauf um die Herausforderung abzulehnen!;c;denyChallenge %player% %target%" with 1 rows named "&81vs1" to target
+
+command denyChallenge <player> <player>: #Ablehnen
+	usage: denyChallenge <challenger> <player2>
+	#permission: pvp1.denyChallenge
+	trigger:
+		set {pvp1.%arg 2%.isInChallengeMenu} to false
+		send "%arg 2% hat die Herausforderung abgelehnt! :C" to arg 1
+		
+command acceptChallenge <player> <player>: #Annehmen; WIP
+	usage: acceptChallenge <challenger> <player2>
+	#permission: pvp1.acceptChallenge
+	trigger:
+		set {pvp1.%arg 2%.isInChallengeMenu} to false
+		send "Herausforderung angenommen! Bereite dich auf den Kampf vor ..." to arg 1
+		send "Herausforderung angenommen! Bereite dich auf den Kampf vor ..." to arg 2
+		set {pvp1.%arg 1%.inGame} to true
+		set {pvp1.%arg 2%.inGame} to true
+		
+		loop {Server::*}: 	#Nächste freie ID
+			loop-value is false
+			set {_ID} to loop-index
+			exit loop
+		
+	#	execute console command "mv load Arena"
+	#	wait 1 second
+	#	execute console command "mv clone Arena %{_ID}%"
+	#	wait 2 seconds
+	#	execute console command "mvconfirm"
+	#	wait 2 seconds
+		
+
+		
+#on quit:
+	#execute console command "{pvp1.%player%.p1p2}"
+		
+on spawn:
+	entity is not a player
+	cancel event
+	
+at 19:00:
+	execute console command "time set 420"
